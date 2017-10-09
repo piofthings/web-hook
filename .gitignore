@@ -1,0 +1,7 @@
+*.js
+.git
+node_modules/
+/temp
+webconfig.json
+
+*.DS_Store

@@ -1,0 +1,31 @@
+{
+  "name": "web-hook",
+  "version": "1.0.0",
+  "description": "Github web hook in NodeJS",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piofthings/web-hook.git"
+  },
+  "keywords": [
+    "Github",
+    "web",
+    "hook"
+  ],
+  "author": "Sumit Kumar Maitra",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/piofthings/web-hook/issues"
+  },
+  "homepage": "https://github.com/piofthings/web-hook#readme",
+  "dependencies": {
+    "@types/node": "^8.0.32",
+    "githubhook": "^1.9.1",
+    "octonode": "^0.8.0",
+    "underscore": "^1.8.3",
+    "underscore.string": "^3.3.4"
+  }
+}
