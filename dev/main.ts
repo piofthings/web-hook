@@ -1,49 +1,60 @@
+import * as fs from 'fs';
+import * as https from 'https';
+
 var githubhook = require('githubhook');
 var octonode = require('octonode');
-var https = require('https');
-var fs = require('fs');
+
+import { ConfigLoader } from "./server/config/config-loader";
 
 export class GithubWebHook {
-    // configure listener for github changes
-    github = githubhook(
-        {
+    private configLoader: ConfigLoader;
+    private github: any;
 
-            host: "localhost",
-            port: 3005,
-            path: "/piofthings",
-            secret: ""
-        });
-
-    gitHubAccessToken = "";
     private client: any;
     private repo: any;
-    private basePath: string = "../temp/";
+    private hookConfig: HookConfig;
 
     constructor() {
-        this.github.on('*', (event: any, repo: any, ref: any, data: any) => {
-            try {
-                console.log(JSON.stringify(repo, null, 2));
-                console.log(JSON.stringify(data.repository, null, 2));
-
-                var fullNameRepository = data.repository.full_name;
-                var removedFilesArray = data["head_commit"]["removed"];
-                var addedFilesArray = data["head_commit"]["added"];
-                var modifiedFilesArray = data["head_commit"]["modified"];
-                this.fetchFileFromGitHub(this.gitHubAccessToken, data.repository.full_name, "master", "", (buffer: any) => {
-
+        this.configLoader = new ConfigLoader();
+        this.configLoader.load((config: HookConfig) => {
+            this.hookConfig = config;
+            console.log("CONFIG:" + JSON.stringify(this.hookConfig, null, 1));
+            this.github = githubhook(
+                {
+                    host: this.hookConfig.host,
+                    port: this.hookConfig.port,
+                    path: this.hookConfig.route,
+                    secret: this.hookConfig.secret
                 });
-            }
-            catch (ex) {
-                console.log("ERROR:" + ex.message);
-            }
+            this.github.on('*', (event: any, repo: any, ref: any, data: any) => {
+                try {
+                    console.log(JSON.stringify(event, null, 2));
+                    console.log(JSON.stringify(repo, null, 2));
+                    console.log(JSON.stringify(data.repository, null, 2));
+
+                    var fullNameRepository = data.repository.full_name;
+
+                    for (let i = 0; i < this.hookConfig.repositories.length; i++) {
+                        let repoConfig = this.hookConfig.repositories[i];
+                        if(repoConfig.eventName == event){
+                            this.fetchFromGitHub(this.hookConfig.accessToken, data.repository.full_name, repoConfig.branch, repoConfig.fetchPath, (buffer: any) => {
+                                console.log("Action complete for Event:" + event);
+                            });
+                        }
+                    }
+
+                }
+                catch (ex) {
+                    console.log("ERROR:" + ex.message);
+                }
+            });
+
+            // listen to github push
+            this.github.listen();
         });
-
-        // listen to github push
-        this.github.listen();
-
     }
-    // listen to push on github on branch master
-    private fetchFileFromGitHub = (gitHubAccessToken: any,
+
+    private fetchFromGitHub = (gitHubAccessToken: any,
         repoFullName: string,
         branchName: string,
         filePath: string,
@@ -52,7 +63,7 @@ export class GithubWebHook {
         this.client = octonode.client(gitHubAccessToken);
         if (this.client != null) {
             this.repo = this.client.repo(repoFullName);
-            console.log("Tring to get: " + repoFullName + "@filePath: " + filePath);
+            console.log("Trying to get: " + repoFullName + "@filePath: " + filePath);
             try {
                 this.getFolder(filePath, () => {
 
@@ -80,11 +91,8 @@ export class GithubWebHook {
                             this.saveFile(file);
                         }
                         else {
-                            console.log("File type:" + file.type);
-                            console.log("File name:" + file.name);
-                            console.log("File sha:" + file.sha);
                             if (file.type == "dir") {
-                                this.ensureExists(this.basePath + filePath + "/" + file.name, 511, () => {
+                                this.ensureExists(this.hookConfig.repositories[0].basePath + filePath + "/" + file.name, 511, () => {
                                     this.getFolder(filePath + "/" + file.name, callback);
                                 });
                             }
@@ -104,7 +112,7 @@ export class GithubWebHook {
         console.log("File:" + file.name);
         let request = https.get(file.download_url, (response: any) => {
             try {
-                let newFile = fs.createWriteStream(this.basePath + file.path);
+                let newFile = fs.createWriteStream(this.hookConfig.repositories[0].basePath + file.path);
                 response.pipe(newFile);
             }
             catch (err) {

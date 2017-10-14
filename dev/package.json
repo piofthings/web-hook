@@ -22,8 +22,10 @@
   },
   "homepage": "https://github.com/piofthings/web-hook#readme",
   "dependencies": {
+    "@types/nconf": "0.0.34",
     "@types/node": "^8.0.32",
     "githubhook": "^1.9.1",
+    "nconf": "^0.8.5",
     "octonode": "^0.8.0",
     "underscore": "^1.8.3",
     "underscore.string": "^3.3.4"
