@@ -1,6 +1,6 @@
 interface HookConfig
 {
-    repositories: Array<RepoConfig>;
+    actions: Array<RepoConfig>;
     accessToken: string;
     host: string;
     port: number;

@@ -16,7 +16,7 @@ export class ConfigLoader {
                     'port': nconf.get('port'),
                     'route': nconf.get('route'),
                     'secret': nconf.get('secret'),
-                    'repositories': nconf.get('repositories') ? nconf.get('repositories') : []
+                    'actions': nconf.get('actions') ? nconf.get('actions') : []
                 }
                 if (callback != null) {
                     callback(this.currentSettings);

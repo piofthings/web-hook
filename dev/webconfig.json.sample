@@ -1,0 +1,15 @@
+{
+    "actions": [
+        {
+            "name": "piofthings-blog[Some Name, not used at the moment]",
+            "url": "https://github.com/piofthings[This might be redundant]",
+            "basePath": "../temp/[Base folder where the download should start]",
+            "eventName": "push"[The event you want to respond to],
+            "fetchPath": "/dev/_blog[Remote folder to fetch with respect to base of repository]"
+        }],
+    "accessToken": "[Your Github Access Token]",
+    "host": "localhost",
+    "port": 3005,
+    "route":  "/webhook"[Path where your hook listeners are waiting for Github],
+    "secret": "[Shared secret for webhook]"
+}
