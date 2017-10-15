@@ -5,7 +5,6 @@ var octonode = require('octonode');
 
 export class GitFetcher {
 
-    private client: any;
     private repo: any;
     private hookConfig: HookConfig;
 
@@ -19,12 +18,12 @@ export class GitFetcher {
             console.log(JSON.stringify(repo, null, 2));
             console.log(JSON.stringify(data.repository, null, 2));
 
-            var fullNameRepository = data.actions.full_name;
+            var fullNameRepository = data.repository.full_name;
 
             for (let i = 0; i < this.hookConfig.actions.length; i++) {
                 let repoConfig = this.hookConfig.actions[i];
                 if (repoConfig.eventName == event) {
-                    this.client.fetchFromGitHub(this.hookConfig.accessToken, data.repository.full_name, repoConfig.branch, repoConfig.fetchPath, (buffer: any) => {
+                    this.fetchFromGitHub(this.hookConfig.accessToken, data.repository.full_name, repoConfig.branch, repoConfig.fetchPath, (buffer: any) => {
                         console.log("Action complete for Event:" + event);
                     });
                 }
@@ -115,5 +114,4 @@ export class GitFetcher {
             } else cb(null); // successfully created folder
         });
     }
-
 }
