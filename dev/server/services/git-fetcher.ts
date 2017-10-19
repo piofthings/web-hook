@@ -8,7 +8,7 @@ export class GitFetcher {
     private repo: any;
     private hookConfig: HookConfig;
 
-    constructor(config: HookConfig){
+    constructor(config: HookConfig) {
         this.hookConfig = config;
     }
 
@@ -41,9 +41,9 @@ export class GitFetcher {
         filePath: string,
         callback: any) => {
 
-        this.client = octonode.client(gitHubAccessToken);
-        if (this.client != null) {
-            this.repo = this.client.repo(repoFullName);
+        let client = octonode.client(gitHubAccessToken);
+        if (client != null) {
+            this.repo = client.repo(repoFullName);
             console.log("Trying to get: " + repoFullName + "@filePath: " + filePath);
             try {
                 this.getFolder(filePath, () => {
@@ -93,8 +93,12 @@ export class GitFetcher {
         console.log("File:" + file.name);
         let request = https.get(file.download_url, (response: any) => {
             try {
-                let newFile = fs.createWriteStream(this.hookConfig.actions[0].basePath + file.path);
-                response.pipe(newFile);
+                let dir = require('path').dirname(file.path);
+                this.ensureExists(this.hookConfig.actions[0].basePath + dir, 511, () => {
+                    console.log(JSON.stringify(file, null, 2));
+                    let newFile = fs.createWriteStream(this.hookConfig.actions[0].basePath + file.path);
+                    response.pipe(newFile);
+                });
             }
             catch (err) {
                 console.log("SaveFile Error: " + err.message);
@@ -107,11 +111,28 @@ export class GitFetcher {
             cb = mask;
             mask = 511;
         }
-        fs.mkdir(path, mask, (err: any) => {
-            if (err) {
-                if (err.code == 'EEXIST') cb(null); // ignore the error if the folder already exists
-                else cb(err); // something else went wrong
-            } else cb(null); // successfully created folder
-        });
+        let controlledPaths = []
+        let paths = path.split(
+            '/' // Put each path in an array
+        ).filter(
+            p => p != '.' // Skip root path indicator (.)
+            ).reduce((memo, item) => {
+                console.log("Reduce: memo:" + memo + " item: " + item);
+                // Previous item prepended to each item so we preserve realpaths
+                const prevItem = memo.length > 0 ? memo[memo.length - 1]  + "/": '';
+
+                controlledPaths.push(prevItem + item);
+                return [...memo, prevItem + item];
+            }, []).map(dir => {
+                console.log("MAP: " + dir);
+                fs.mkdir(dir, err => {
+                    if (err && err.code != 'EEXIST') throw err
+                    // Delete created directory (or skipped) from controlledPath
+                    controlledPaths.splice(controlledPaths.indexOf(dir), 1)
+                    if (controlledPaths.length === 0) {
+                        cb();
+                    }
+                })
+            });
     }
 }

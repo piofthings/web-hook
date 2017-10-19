@@ -22,8 +22,12 @@
   },
   "homepage": "https://github.com/piofthings/web-hook#readme",
   "dependencies": {
+    "@types/body-parser": "^1.16.5",
+    "@types/express": "^4.0.37",
     "@types/nconf": "0.0.34",
     "@types/node": "^8.0.32",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
     "githubhook": "^1.9.1",
     "nconf": "^0.8.5",
     "octonode": "^0.8.0",
