@@ -111,7 +111,8 @@ export class GitFetcher {
             cb = mask;
             mask = 511;
         }
-        let controlledPaths = []
+        console.log("ensureExists: " + path);
+        let controlledPaths = new Array<string>();
         let paths = path.split(
             '/' // Put each path in an array
         ).filter(
@@ -125,14 +126,16 @@ export class GitFetcher {
                 return [...memo, prevItem + item];
             }, []).map(dir => {
                 console.log("MAP: " + dir);
+                console.log(controlledPaths);
                 fs.mkdir(dir, err => {
                     if (err && err.code != 'EEXIST') throw err
                     // Delete created directory (or skipped) from controlledPath
-                    controlledPaths.splice(controlledPaths.indexOf(dir), 1)
-                    if (controlledPaths.length === 0) {
-                        cb();
+                    controlledPaths.splice(controlledPaths.indexOf(dir), 1);
+                    if (controlledPaths.length == 0) {
+                        console.log("Calling back");
+                        return cb();
                     }
-                })
+                });
             });
     }
 }

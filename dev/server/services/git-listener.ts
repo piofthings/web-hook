@@ -26,7 +26,7 @@ export class GitListener extends EventEmitter {
 
     private reply = (statusCode: number, res: express.Response) => {
 
-        let message = Http.STATUS_CODES[statusCode].toLowerCase() + "Yada Yada Yada";
+        let message = Http.STATUS_CODES[statusCode]!=null ? Http.STATUS_CODES[statusCode].toLowerCase() + "Yada Yada Yada" : statusCode.toString();
 
         var headers = {
             'Content-Type': 'application/json',
@@ -37,8 +37,8 @@ export class GitListener extends EventEmitter {
         res.send(message);
     }
 
-    public serverHandler = (req: express.Request, res: express.Response, next) => {
-        data = req.body;
+    public serverHandler = (req: express.Request, res: express.Response, next: any) => {
+        let data = req.body;
 
         let url = Url.parse(req.url, true);
         //let buffer : Array<any> = [];
@@ -50,8 +50,6 @@ export class GitListener extends EventEmitter {
             remoteAddress = req.headers['x-forwarded-for'];
         }
         remoteAddress = remoteAddress || req.ip || req.socket.remoteAddress;
-
-        let data: any;
 
         console.log(Util.format('received %d bytes from %s', JSON.stringify(data).length, remoteAddress));
 
@@ -95,7 +93,7 @@ export class GitListener extends EventEmitter {
         }
 
         // data.request = req;
-        let event = req.headers['x-github-event'] || req.headers['x-gogs-event'] || req.headers['x-event-key'] || (req.headers['x-gitlab-event'] ? req.headers['x-gitlab-event'].split(' ')[0].toLowerCase() : 'unknown');
+        let event = req.headers['x-github-event'] || req.headers['x-gogs-event'] || req.headers['x-event-key'] || (req.headers['x-gitlab-event'] ? <string>req.headers['x-gitlab-event'].split(' ')[0].toLowerCase() : 'unknown');
         console.log("Event:" + event);
         console.log("Data --------------------")
 
